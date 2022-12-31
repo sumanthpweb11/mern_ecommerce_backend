@@ -5,6 +5,8 @@ const {
   getAllProduct,
   updateProduct,
   deleteProduct,
+  addToWishlist,
+  rating,
 } = require("../controller/productCtrl");
 const { isAdmin, authMiddleware } = require("../middlewares/authMiddleware");
 
@@ -15,6 +17,12 @@ router.post("/", authMiddleware, isAdmin, createProduct);
 
 // GET SINGLE PRODUCT
 router.get("/:id", getaProduct);
+
+// ADD TO WISHLIST
+router.put("/wishlist", authMiddleware, addToWishlist);
+
+// STAR RATING
+router.put("/rating", authMiddleware, rating);
 
 // UPDATE PRODUCT
 router.put("/:id", authMiddleware, isAdmin, updateProduct);

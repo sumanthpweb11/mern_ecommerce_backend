@@ -37,6 +37,7 @@ const productSchema = new mongoose.Schema(
     sold: {
       type: Number,
       default: 0,
+      select: false,
     },
 
     color: {
@@ -55,10 +56,10 @@ const productSchema = new mongoose.Schema(
       required: true,
     },
 
-    // totalrating: {
-    //   type: String,
-    //   default: 0,
-    // },
+    totalrating: {
+      type: String,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
