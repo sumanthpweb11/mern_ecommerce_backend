@@ -2,6 +2,8 @@ const Product = require("../models/productModel");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
 const User = require("../models/userModel");
+const validateMongoDbId = require("../utils/validateMongodbId");
+const cloudinaryUploadImg = require("../utils/cloudinary");
 
 // CREATE PRODUCT
 const createProduct = asyncHandler(async (req, res) => {
@@ -150,7 +152,7 @@ const addToWishlist = asyncHandler(async (req, res) => {
 // START RATINGS
 const rating = asyncHandler(async (req, res) => {
   const { _id } = req.user;
-  const { star, prodId } = req.body;
+  const { star, prodId, comment } = req.body;
 
   try {
     // first get the product
@@ -167,13 +169,12 @@ const rating = asyncHandler(async (req, res) => {
           ratings: { $elemMatch: alreadyRated },
         },
         {
-          $set: { "ratings.$.star": star },
+          $set: { "ratings.$.star": star, "ratings.$.comment": comment },
         },
         {
           new: true,
         }
       );
-      res.json(updateRating);
     } else {
       const rateProduct = await Product.findByIdAndUpdate(
         prodId,
@@ -181,15 +182,30 @@ const rating = asyncHandler(async (req, res) => {
           $push: {
             ratings: {
               star: star,
+              comment: comment,
               postedby: _id,
             },
           },
         },
         { new: true }
       );
-
-      res.json(rateProduct);
     }
+
+    // Total/All Ratings
+    const getAllRatings = await Product.findById(prodId);
+    let totalrating = getAllRatings.ratings.length;
+    let ratingsum = getAllRatings.ratings
+      .map((item) => item.star)
+      .reduce((prev, curr) => prev + curr, 0);
+    let actualRating = Math.round(ratingsum / totalrating);
+    let finalproduct = await Product.findByIdAndUpdate(
+      prodId,
+      {
+        totalrating: actualRating,
+      },
+      { new: true }
+    );
+    res.json(finalproduct);
   } catch (error) {
     throw new Error(error);
   }
